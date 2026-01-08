@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>CyberMail Validator</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <style>
+    :root {
+      --hacker-green: #00ff41;
+      --matrix-green: #0fff50;
+      --dark-bg: #0a0a0a;
+      --card-bg: #111111;
+      --terminal-text: #fefefe;
+      --glow-blue: #0088ff;
+      --error-red: #ff0033;
+    }
+    .text-muted{
+      color: #fefefe !important;
+    }
+    body {
+      background-color: var(--dark-bg);
+      font-family: 'Courier New', Consolas, monospace;
+      color: var(--terminal-text);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 255, 65, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(0, 136, 255, 0.05) 0%, transparent 20%);
+    }
+    
+    /* Matrix rain effect */
+    #matrixRain {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.1;
+      z-index: -1;
+    }
+    
+    .terminal-header {
+      background: linear-gradient(90deg, #000000 0%, #111111 50%, #000000 100%);
+      border-bottom: 2px solid var(--hacker-green);
+      padding: 15px 0;
+      box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+      position: relative;
+    }
+    
+    .terminal-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        transparent, 
+        var(--hacker-green), 
+        transparent);
+      animation: scanline 3s linear infinite;
+    }
+    
+    @keyframes scanline {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    .glitch-text {
+      font-family: 'Courier New', Consolas, monospace;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      position: relative;
+      animation: glitch 5s infinite;
+    }
+    
+    @keyframes glitch {
+      0%, 100% { text-shadow: 0 0 10px var(--hacker-green); }
+      95% { text-shadow: 0 0 10px var(--hacker-green); }
+      96% { text-shadow: -2px 0 var(--error-red), 2px 0 var(--glow-blue); }
+      97% { text-shadow: 2px 0 var(--error-red), -2px 0 var(--glow-blue); }
+      98% { text-shadow: -2px 0 var(--error-red), 2px 0 var(--glow-blue); }
+      99% { text-shadow: 2px 0 var(--error-red), -2px 0 var(--glow-blue); }
+    }
+    
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .cyber-card {
+      background-color: var(--card-bg);
+      border: 1px solid #333;
+      border-radius: 0;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .cyber-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(to bottom, 
+        transparent, 
+        var(--hacker-green), 
+        transparent);
+    }
+    
+    .cyber-input {
+      background-color: #000;
+      border: 1px solid #333;
+      color: var(--hacker-green);
+      font-family: 'Courier New', Consolas, monospace;
+      border-radius: 0;
+      padding: 12px;
+      font-size: 14px;
+      resize: vertical;
+    }
+    
+    .cyber-input:focus {
+      border-color: var(--hacker-green);
+      box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+      color: var(--hacker-green);
+      background-color: #000;
+    }
+    
+    .cyber-btn {
+      background: linear-gradient(90deg, #000, #111);
+      color: var(--hacker-green);
+      border: 1px solid var(--hacker-green);
+      border-radius: 0;
+      padding: 10px 30px;
+      font-family: 'Courier New', Consolas, monospace;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    
+    .cyber-btn:hover {
+      background: linear-gradient(90deg, #111, #222);
+      box-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+      color: white;
+      transform: translateY(-2px);
+    }
+    
+    .cyber-btn:active {
+      transform: translateY(0);
+    }
+    
+    .cyber-btn::after {
+      content: '>>';
+      position: absolute;
+      right: 10px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .cyber-btn:hover::after {
+      opacity: 1;
+    }
+    
+    .status-badge {
+      padding: 5px 15px;
+      border-radius: 0;
+      font-family: 'Courier New', Consolas, monospace;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+    
+    .badge-live {
+      background-color: #000;
+      color: var(--hacker-green);
+      border: 1px solid var(--hacker-green);
+      box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+    }
+    
+    .badge-dead {
+      background-color: #000;
+      color: var(--error-red);
+      border: 1px solid var(--error-red);
+      box-shadow: 0 0 10px rgba(255, 0, 51, 0.3);
+    }
+    
+    .email-card {
+      background-color: #000;
+      border: 1px solid #222;
+      border-radius: 0;
+      padding: 15px;
+      margin-bottom: 10px;
+      transition: all 0.3s;
+    }
+    
+    .email-card:hover {
+      border-color: var(--hacker-green);
+      transform: translateX(5px);
+    }
+    
+    .email-card.live {
+      border-left: 3px solid var(--hacker-green);
+    }
+    
+    .email-card.dead {
+      border-left: 3px solid var(--error-red);
+    }
+    
+    .email-address {
+      color: var(--terminal-text);
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 14px;
+      word-break: break-all;
+    }
+    
+    .stats-chip {
+      background-color: #000;
+      border: 1px solid #333;
+      color: var(--terminal-text);
+      padding: 8px 15px;
+      margin: 5px;
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 12px;
+      display: inline-block;
+      position: relative;
+    }
+    
+    .stats-chip::before {
+      content: '[';
+      color: var(--hacker-green);
+      margin-right: 5px;
+    }
+    
+    .stats-chip::after {
+      content: ']';
+      color: var(--hacker-green);
+      margin-left: 5px;
+    }
+    
+    .terminal-output {
+      background-color: #000;
+      border: 1px solid #333;
+      color: var(--terminal-text);
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 12px;
+      padding: 15px;
+      margin-top: 20px;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .blink {
+      animation: blink 1s infinite;
+    }
+    
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .hacker-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .ascii-art {
+      color: var(--hacker-green);
+      font-size: 8px;
+      line-height: 1;
+      opacity: 0.7;
+      margin-bottom: 20px;
+    }
+    
+    .loading-text {
+      color: var(--hacker-green);
+      font-family: 'Courier New', Consolas, monospace;
+      font-size: 14px;
+      margin: 20px 0;
+    }
+    
+    .loading-text::after {
+      content: '█';
+      animation: typing 1s infinite;
+    }
+    
+    @keyframes typing {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+    
+    .cyber-footer {
+      border-top: 1px solid #333;
+      margin-top: 40px;
+      padding-top: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 255, 65, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 255, 65, 0); }
+    }
+    
+    @media (max-width: 768px) {
+      .hacker-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .main-container {
+        padding: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Matrix Rain Background -->
+<canvas id="matrixRain"></canvas>
+
+<div class="terminal-header">
+  <div class="main-container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h1 class="glitch-text mb-0">
+          <span class="text-success">CYBER</span>MAIL <span class="text-info">VALIDATOR</span>
+        </h1>
+        <div class="ascii-art">
+          ██████╗██╗   ██╗██████╗ ███████╗██████╗ ███╗   ███╗ █████╗ ██╗██╗     
+          ██╔════╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔══██╗████╗ ████║██╔══██╗██║██║     
+          ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝██╔████╔██║███████║██║██║     
+          ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗██║╚██╔╝██║██╔══██║██║██║     
+          ╚██████╗   ██║   ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║██║  ██║██║███████╗
+           ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚══════╝
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <div class="text-muted small">Trạng thái hệ thống: <span class="text-success blink">Hoạt động</span></div>
+        <div class="text-muted small">QUYỀN TRUY CẬP: <span class="text-info">ĐƯỢC CẤP</span></div>
+        <div class="text-muted small">ADMIN: <span class="text-warning">ĐẶNG THANH HÀ</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="main-container">
+  <!-- Input Section -->
+  <div class="cyber-card mb-4">
+    <div class="row mb-3">
+      <div class="col">
+        <h3 class="text-light mb-0">
+          <span class="text-success">[Đầu vào]</span> TRÌNH TỰ XÁC THỰC EMAIL
+        </h3>
+        <div class="text-muted small mt-1">NHẬP ĐỊA CHỈ EMAIL(MỖI DÒNG MỘT ĐỊA CHỈ)</div>
+      </div>
+    </div>
+    
+    <div class="row mb-4">
+      <div class="col">
+        <textarea 
+          id="emails" 
+          class="form-control cyber-input" 
+          rows="6" 
+          placeholder="user@target.com&#10;admin@system.org&#10;test@domain.net"
+        ></textarea>
+        <div class="text-muted small mt-2">
+          <span class="text-success">></span> SẴN SÀNG PHÂN TÍCH THÔNG TIN EMAIL
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <div class="col-md-8">
+        <div class="d-flex align-items-center">
+          <button id="btnCheck" class="cyber-btn me-3 pulse">
+            <span class="btn-text">Quét dữ liệu</span>
+          </button>
+          <div class="text-muted small">
+            <span class="text-success">></span> DANH SÁCH CHỜ: <span id="targetCount">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 text-md-end">
+        <div class="text-muted small">
+          <span class="text-info">[Hệ thống]</span> API: HOẠT ĐỘNG
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Results Section -->
+  <div id="out" class="cyber-card">
+    <div class="loading-text">Đang chờ lệnh</div>
+  </div>
+  
+  <!-- Footer -->
+  <div class="cyber-footer">
+    <div class="row">
+      <div class="col">
+        <div class="text-muted small">
+          CYBERMAIL VALIDATOR v2.0 | ENCRYPTED TRANSMISSION | [TIMESTAMP: <span id="timestamp">--:--:--</span>]
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Matrix Rain Effect
+const canvas = document.getElementById('matrixRain');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$+-*/=%"#@&;<>?|';
+const fontSize = 12;
+const columns = canvas.width / fontSize;
+
+const drops = [];
+for(let i = 0; i < columns; i++) {
+  drops[i] = 1;
+}
+
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  ctx.fillStyle = '#0F0';
+  ctx.font = fontSize + 'px monospace';
+  
+  for(let i = 0; i < drops.length; i++) {
+    const text = letters[Math.floor(Math.random() * letters.length)];
+    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+    
+    if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+      drops[i] = 0;
+    }
+    drops[i]++;
+  }
+}
+
+setInterval(drawMatrix, 35);
+
+// Update timestamp
+function updateTimestamp() {
+  const now = new Date();
+  const timestamp = now.toLocaleTimeString('en-US', { 
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+  document.getElementById('timestamp').textContent = timestamp;
+}
+setInterval(updateTimestamp, 1000);
+updateTimestamp();
+
+// Update target count
+document.getElementById('emails').addEventListener('input', function() {
+  const emails = this.value.split('\n').filter(e => e.trim());
+  document.getElementById('targetCount').textContent = emails.length;
+});
+
+// Original functionality
+document.getElementById('btnCheck').addEventListener('click', check);
+
+async function check() {
+  const emails = document.getElementById('emails')
+    .value.split('\n')
+    .map(e => e.trim())
+    .filter(e => e);
+
+  if (!emails.length) {
+    renderMessage('> LỖI: KHÔNG CÓ EMAIL NÀO ĐƯỢC NHẬP');
+    return;
+  }
+
+  renderMessage('<div class="loading-text">> ĐANG QUÉT DỮ LIỆU...</div>');
+
+  try {
+    const res = await fetch('https://fancy-band-e25b.hadtph51506.workers.dev/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emails })
+    });
+
+    const data = await res.json();
+    renderResult(data);
+  } catch (err) {
+    renderMessage('> SYSTEM ERROR: ' + escapeHtml(err.message || err));
+  }
+}
+
+function renderMessage(text) {
+  const out = document.getElementById('out');
+  out.innerHTML = text;
+}
+
+function renderResult(resp) {
+  const out = document.getElementById('out');
+  if (!resp || !resp.data) {
+    out.innerHTML = '<div class="loading-text">> ERROR: NO RESPONSE FROM SERVER</div>';
+    return;
+  }
+
+  const summary = `
+    <div class="mb-4">
+      <h4 class="text-light mb-3">
+        <span class="text-success">[RESULTS]</span> SCAN COMPLETE
+      </h4>
+      <div class="mb-3">
+        ${['status', 'message', 'responseTime', 'new_credit', 'request_count'].map(field => `
+          <span class="stats-chip">
+            ${field.toUpperCase()}: ${escapeHtml(String(resp[field] || '—'))}
+          </span>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  const cards = resp.data.map(item => {
+    const statusClass = item.status === 'live' ? 'live' : 'dead';
+    const badgeClass = item.status === 'live' ? 'badge-live' : 'badge-dead';
+    
+    return `
+      <div class="email-card ${statusClass}">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <div class="email-address">${escapeHtml(item.email || '')}</div>
+          </div>
+          <div class="col-md-4 text-md-end">
+            <span class="status-badge ${badgeClass}">
+              ${escapeHtml(item.status || 'UNKNOWN').toUpperCase()}
+            </span>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const rawOutput = `
+    <div class="mt-4">
+      <h6 class="text-light mb-2">
+        <span class="text-info">[RAW DATA]</span> SERVER RESPONSE
+      </h6>
+      <div class="terminal-output">
+${escapeHtml(JSON.stringify(resp, null, 2))}
+      </div>
+    </div>
+  `;
+
+  out.innerHTML = summary + `
+    <div class="hacker-grid">
+      ${cards}
+    </div>
+  ` + rawOutput;
+}
+
+function escapeHtml(s){
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;');
+}
+
+// Add some hacker-like terminal typing effect
+function typeWriter(element, text, speed = 50) {
+  let i = 0;
+  element.innerHTML = '';
+  function typing() {
+    if (i < text.length) {
+      element.innerHTML += text.charAt(i);
+      i++;
+      setTimeout(typing, speed);
+    }
+  }
+  typing();
+}
+
+// Window resize handler
+window.addEventListener('resize', function() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('emails');
+  const placeholder = textarea.placeholder;
+  textarea.placeholder = '';
+  setTimeout(() => {
+    textarea.placeholder = placeholder;
+  }, 1000);
+});
+</script>
+
+</body>
+</html>
