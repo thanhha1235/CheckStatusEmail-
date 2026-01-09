@@ -531,10 +531,10 @@ function renderResult(resp) {
   const summary = `
     <div class="mb-4">
       <h4 class="text-light mb-3">
-        <span class="text-success">[RESULTS]</span> SCAN COMPLETE
+        <span class="text-success">[RESULTS]</span> QUÉT THÀNH CÔNG
       </h4>
       <div class="mb-3">
-        ${['status', 'message', 'responseTime', 'new_credit', 'request_count'].map(field => `
+        ${['status', 'responseTime', 'new_credit'].map(field => `
           <span class="stats-chip">
             ${field.toUpperCase()}: ${escapeHtml(String(resp[field] || '—'))}
           </span>
@@ -566,11 +566,9 @@ function renderResult(resp) {
   const rawOutput = `
     <div class="mt-4">
       <h6 class="text-light mb-2">
-        <span class="text-info">[RAW DATA]</span> SERVER RESPONSE
+       
       </h6>
-      <div class="terminal-output">
-${escapeHtml(JSON.stringify(resp, null, 2))}
-      </div>
+  
     </div>
   `;
 
